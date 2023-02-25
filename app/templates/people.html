@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block title %}
+People
+{% endblock %}
+{% block content %}
+{% if person %}
+    <p>Gather some data on the People in this dataset.</p>
+    <span>This person is {{ person }}.</span>
+{% else %}
+    <p>Try looking passing a name to the end of the URL.</p>
+{% endif %}
+{% endblock %}

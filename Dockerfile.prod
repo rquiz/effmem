@@ -1,0 +1,55 @@
+# Development image
+FROM python:3.9-slim-buster AS development
+
+# Set working directory
+WORKDIR /app
+
+# Copy the requirements file
+COPY requirements.txt .
+
+# Install the requirements
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the Flask app files
+COPY app/ .
+
+# Create a volume for Python dependencies
+VOLUME /app/venv
+
+# Create a volume for the PostgreSQL database
+VOLUME /postgres/data
+
+# Expose the port
+EXPOSE 5000
+
+# Set the environment variables for Flask
+ENV FLASK_APP=app.py
+ENV FLASK_DEBUG=true
+ENV FLASK_RUN_HOST=0.0.0.0
+
+# Start the Flask app
+CMD ["flask", "run"]
+
+
+# Production image
+FROM python:3.9-slim-buster AS production
+
+# Set working directory
+WORKDIR /app
+
+# Copy the requirements file
+COPY requirements.txt .
+
+# Install the requirements
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the Flask app files
+COPY app/ .
+
+# Set the environment variables for Flask
+ENV FLASK_APP=app.py
+ENV FLASK_DEBUG=false
+ENV FLASK_RUN_HOST=0.0.0.0
+
+# Start the Flask app
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
