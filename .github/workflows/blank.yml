@@ -43,8 +43,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: testdrive/simple:v0
-          
+          tags: ghcr.io/rquiz/simple:v0
+
       # Runs a single command using the runners shell
       - name: Run a one-line script
         run: echo goodbye, world!
