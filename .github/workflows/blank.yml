@@ -41,6 +41,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v4
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           context: .
           push: true
           tags: ghcr.io/rquiz/simple:v0
