@@ -4,6 +4,8 @@ FROM $FROM_IMAGE AS crust
 
 
 RUN fallocate -l 300MB test.txt
+RUN echo "ANOTHER THING TO ECHO"
+RUN fallocate -l 500MB test3.txt
 
 # Build a runtime using `crust` as the base image
 FROM crust AS philling
