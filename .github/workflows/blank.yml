@@ -41,10 +41,11 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v4
         with:
-          secrets: ${{ secrets.GITHUB_TOKEN }}
           context: .
           push: true
           tags: ghcr.io/rquiz/simple:v0
+          cache-from: type=registry,ref=rquiz/simple:buildcache
+          cache-to: type=registry,ref=rquiz/simple:buildcache,mode=max
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
