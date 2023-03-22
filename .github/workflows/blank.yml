@@ -15,10 +15,9 @@ on:
 
 env:
   CACHE_DIR: /tmp/.buildx-cache
-  DKR_REGISTRY: ghcr.io/rquiz/
+  DKR_REGISTRY: ghcr.io/rquiz/simple:v0
   DKR_IMAGE: simple
   DKR_TAG: v0
-  DKR: ${{ env.DKR_REGISTRY }}/${{ env.DKR_IMAGE }}:${{ DKR_TAG }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -47,7 +46,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.DKR }}
+          tags: ${{ env.DKR_REGISTRY }}
           cache-from: type=local,src=${{ env.CACHE_DIR }}
           cache-to: type=local,dest=${{ env.CACHE_DIR }}
 
@@ -75,6 +74,6 @@ jobs:
         run: ls -R
       -
         name: Exec container tests
-        run: docker run ${{ env.DKR }}
+        run: docker run ${{ env.DKR_REGISTRY }}
 
 
