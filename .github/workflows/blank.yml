@@ -16,6 +16,7 @@ on:
 env:
   CACHE_DIR: /tmp/.buildx-cache
   DKR_REGISTRY: ghcr.io/rquiz/simple:v0
+  DKR_REGISTRY_CACHED: ghcr.io/rquiz/cacher:v0
   DKR_IMAGE: simple
   DKR_TAG: v0
 
@@ -51,14 +52,25 @@ jobs:
           cache-to: type=local,dest=${{ env.CACHE_DIR }}
 
       # Runs a single command using the runners shell
-      - name: Run a one-line script
+      - 
+        name: Run a one-line script
         run: echo goodbye, world!
-
-      - name: Persist Docker image for next steps
+      - 
+        name: Persist Docker image for next steps
         uses: actions/upload-artifact@v3
         with:
           name: cached-image
           path: ${{ env.CACHE_DIR }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ env.DKR_REGISTRY_CACHED }}
+          cache-from: type=local,src=${{ env.CACHE_DIR }}
+          cache-to: gha,mode=max
+
 
   test:
     needs: [build]
