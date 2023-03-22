@@ -73,6 +73,12 @@ jobs:
         name: Show local filesystem
         run: ls -R
       -
+        name: Step2 Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+      -
+        name: Step2 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
         name: Exec container tests
         run: docker run ${{ env.DKR_REGISTRY }}
 
