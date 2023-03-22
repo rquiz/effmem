@@ -69,7 +69,7 @@ jobs:
           push: true
           tags: ${{ env.DKR_REGISTRY_CACHED }}
           cache-from: type=local,src=${{ env.CACHE_DIR }}
-          cache-to: gha,mode=max
+          cache-to: type=gha,mode=max
 
 
   test:
