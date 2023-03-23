@@ -15,6 +15,7 @@ on:
 
 env:
   CACHE_DIR: /tmp/.buildx-cache
+  IMAGE: rquiz/simple:v0
   DKR_REGISTRY: ghcr.io/rquiz/simple:v0
   DKR_REGISTRY_CACHED: ghcr.io/rquiz/cacher:v0
   DKR_IMAGE: simple
@@ -70,6 +71,13 @@ jobs:
           tags: ${{ env.DKR_REGISTRY_CACHED }}
           cache-from: type=local,src=${{ env.CACHE_DIR }}
           cache-to: type=gha,mode=max
+      -
+        name: Push image to GHCR
+        run: |
+          docker buildx imagetools create \
+            --tag ${{ env.DKR_REGISTRY_CACHED }} \
+            --tag ${{ env.DKR_REGISTRY_CACHED }} \
+            ${{ env.IMAGE }}
 
 
   test:
