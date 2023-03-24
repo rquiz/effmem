@@ -57,14 +57,19 @@ jobs:
           cache-to: type=gha,mode=max
 
       # Runs a single command using the runners shell
-      - 
-        name: Run a one-line script
-        run: echo goodbye, world!
+      -
+        name: Local images?
+        run: |
+          docker image ls
       -
         name: Push image to HUB
         run: |
           docker tag ${{ env.DKR_REGISTRY_CACHED1 }} ${{ env.HUB_REGISTRY }} | \
           docker push ${{ env.HUB_REGISTRY }}
+      -
+        name: Local images?
+        run: |
+          docker image ls
       -
         name: Push tags to image in HUB
         run: |
