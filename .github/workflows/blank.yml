@@ -76,7 +76,7 @@ jobs:
         name: Push tags to image in HUB
         run: |
           docker buildx imagetools create \
-            --tag ${{ env.DKR_REGISTRY_CACHED2 }} \
+            --tag ${{ env.HUB_REGISTRY_CACHED1 }} \
             ${{ env.HUB_REGISTRY }}
 
 
