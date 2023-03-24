@@ -61,7 +61,7 @@ jobs:
         run: |
           docker buildx imagetools create \
             --tag ${{ env.DKR_REGISTRY_CACHED }} \
-            ${{ env.IMAGE }
+            ${{ env.IMAGE }}
 
 
   test:
