@@ -17,7 +17,7 @@ env:
   CACHE_DIR: /tmp/.buildx-cache
   IMAGE: rquiz/simple:v0
   DKR_REGISTRY: ghcr.io/rquiz/simple:v0
-  DKR_REGISTRY_CACHED: ghcr.io/rquiz/cacher:v0
+  DKR_REGISTRY_CACHED: ghcr.io/rquiz/simple:cachingtag
   DKR_IMAGE: simple
   DKR_TAG: v0
 
@@ -48,36 +48,20 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.DKR_REGISTRY }}
-          cache-from: type=local,src=${{ env.CACHE_DIR }}
-          cache-to: type=local,dest=${{ env.CACHE_DIR }}
+          tags: ${{ env.DKR_REGISTRY_CACHED }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # Runs a single command using the runners shell
       - 
         name: Run a one-line script
         run: echo goodbye, world!
-      - 
-        name: Persist Docker image for next steps
-        uses: actions/upload-artifact@v3
-        with:
-          name: cached-image
-          path: ${{ env.CACHE_DIR }}
       -
-        name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ${{ env.DKR_REGISTRY_CACHED }}
-          cache-from: type=local,src=${{ env.CACHE_DIR }}
-          cache-to: type=gha,mode=max
-      -
-        name: Push image to GHCR
+        name: Push tags to image in GHCR
         run: |
           docker buildx imagetools create \
             --tag ${{ env.DKR_REGISTRY_CACHED }} \
-            --tag ${{ env.DKR_REGISTRY_CACHED }} \
-            ${{ env.IMAGE }}
+            ${{ env.IMAGE }
 
 
   test:
