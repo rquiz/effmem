@@ -16,7 +16,8 @@ on:
 env:
   CACHE_DIR: /tmp/.buildx-cache
   DKR_REGISTRY: ghcr.io/rquiz/simple:v0
-  DKR_REGISTRY_CACHED: ghcr.io/rquiz/simple:cachingtag
+  DKR_REGISTRY_CACHED1: ghcr.io/rquiz/simple:cachingtag1
+  DKR_REGISTRY_CACHED2: ghcr.io/rquiz/simple:cachingtag2
   DKR_IMAGE: simple
   DKR_TAG: v0
 
@@ -47,7 +48,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.DKR_REGISTRY_CACHED }}
+          tags: ${{ env.DKR_REGISTRY_CACHED1 }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -59,7 +60,7 @@ jobs:
         name: Push tags to image in GHCR
         run: |
           docker buildx imagetools create \
-            --tag ${{ env.DKR_REGISTRY_CACHED }} \
+            --tag ${{ env.DKR_REGISTRY_CACHED2 }} \
             ${{ env.DKR_REGISTRY }}
 
 
@@ -67,11 +68,6 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Pull cached artifact for testing
-        uses: actions/download-artifact@v3
-        with:
-          name: cached-image
       -
         name: Show local filesystem
         run: ls -R
