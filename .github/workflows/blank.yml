@@ -61,7 +61,12 @@ jobs:
         name: Run a one-line script
         run: echo goodbye, world!
       -
-        name: Push tags to image in GHCR
+        name: Push image to HUB
+        run: |
+          docker tag ${{ env.DKR_REGISTRY_CACHED1 }} ${{ env.HUB_REGISTRY }} | \
+          docker push ${{ env.HUB_REGISTRY }}
+      -
+        name: Push tags to image in HUB
         run: |
           docker buildx imagetools create \
             --tag ${{ env.DKR_REGISTRY_CACHED2 }} \
