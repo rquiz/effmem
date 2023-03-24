@@ -55,8 +55,10 @@ jobs:
           tags: ${{ env.DKR_REGISTRY_CACHED1 }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      # Runs a single command using the runners shell
+      -
+        name: Pull image from GHCR cache
+        run: |
+          docker pull ${{ env.DKR_REGISTRY_CACHED1 }}
       -
         name: Local images?
         run: |
