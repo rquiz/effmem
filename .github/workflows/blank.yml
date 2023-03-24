@@ -15,7 +15,6 @@ on:
 
 env:
   CACHE_DIR: /tmp/.buildx-cache
-  IMAGE: rquiz/simple:v0
   DKR_REGISTRY: ghcr.io/rquiz/simple:v0
   DKR_REGISTRY_CACHED: ghcr.io/rquiz/simple:cachingtag
   DKR_IMAGE: simple
@@ -61,7 +60,7 @@ jobs:
         run: |
           docker buildx imagetools create \
             --tag ${{ env.DKR_REGISTRY_CACHED }} \
-            ${{ env.IMAGE }}
+            ${{ env.DKR_REGISTRY }}
 
 
   test:
