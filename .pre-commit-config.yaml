@@ -1,0 +1,42 @@
+# See https://pre-commit.com/hooks.html for more hooks
+
+default_language_version:
+  python: python3.8
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v4.4.0"
+    hooks:
+      - id: check-added-large-files
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/psf/black
+    rev: "23.3.0"
+    hooks:
+      - id: black
+        args:
+          - --line-length=160
+          - --include='\.py'
+        exclude: ^experimental/
+        language_version: python3.8
+        stages: [commit, manual]
+        types: [python]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black", "--filter-files"]
+        exclude: ^shared/models/__init__.py
+        stages: [commit, manual]
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: "v0.0.264"
+    hooks:
+      - id: ruff
+        args:
+            - --line-length=160
+        exclude: ^experimental/
+        stages: [manual]
