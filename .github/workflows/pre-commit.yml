@@ -36,12 +36,12 @@ jobs:
         fetch-depth: 0
     - name: Determine Git Refs for a Push
       if: github.event_name == 'push'
-      run:
+      run: |
         echo "BASE=${{ github.event.before }}" >> $GITHUB_ENV
         echo "HEAD=${{ github.event.after }}" >> $GITHUB_ENV
     - name: Determine Git Refs for a PR
       if: github.event_name == 'pull_request'
-      run:
+      run: |
         echo "BASE=${{ github.event.pull_request.base.sha }}" >> $GITHUB_ENV
         echo "HEAD=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
     - uses: actions/setup-python@v3
