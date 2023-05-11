@@ -1,0 +1,33 @@
+# This is a basic workflow to help you get started with Actions
+name: PRECOMMIT
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        command:
+          - black
+          - isort
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # required to grab the history of the PR
+        fetch-depth: 0
+    - uses: actions/setup-python@v3
+      with:
+        python-version: '3.8'
+    - uses: pre-commit/action@v3.0.0
+      with:
+        extra_args: ${{ matrix.command }} --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
