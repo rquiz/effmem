@@ -50,3 +50,13 @@ jobs:
     - uses: pre-commit/action@v3.0.0
       with:
         extra_args: ${{ matrix.command }} --from-ref ${{ env.BASE }} --to-ref ${{ env.HEAD }}
+
+
+  test:
+    name: testvars
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Print Env Vars
+      run: |
+        echo "Base: ${{ env.BASE }} Head: ${{ env.HEAD }}"
