@@ -51,7 +51,6 @@ jobs:
       with:
         extra_args: ${{ matrix.command }} --from-ref ${{ env.BASE }} --to-ref ${{ env.HEAD }}
 
-
   test:
     name: testvars
     needs: [format]
