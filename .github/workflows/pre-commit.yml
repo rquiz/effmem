@@ -54,6 +54,7 @@ jobs:
 
   test:
     name: testvars
+    needs: [format]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
