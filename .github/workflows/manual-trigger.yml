@@ -6,6 +6,7 @@ on:
       environment:
         type: environment
         required: true
+        default: test
 
   pull_request:
     types: [opened, reopened, synchronize]
