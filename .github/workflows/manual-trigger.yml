@@ -1,0 +1,19 @@
+name: Manual Workflowsss
+
+on: 
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        required: true
+
+jobs:
+  first-trigger:
+    name: first trigger
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch environment
+        id: fetch-env
+        run: |
+          echo "Found ${{ secrets._SOMETHING_HIDDEN }} environment secrets"
+
