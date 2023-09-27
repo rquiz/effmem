@@ -52,3 +52,7 @@ jobs:
           echo "🦟 default (test) environment should be set here on push (not on manual trigger) ${{ env.DEFAULT_ENV }} ? -> ${{ secrets._SOMETHING_HIDDEN }} <- would be here if it is."
           echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
 
+  call-terraform-fmt:
+    uses: ./.github/workflows/tf-fmt.yml
+    with:
+      tf-root-dir: "tf/"
