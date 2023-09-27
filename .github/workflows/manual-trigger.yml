@@ -16,4 +16,16 @@ jobs:
         id: fetch-env
         run: |
           echo "Found ${{ secrets._SOMETHING_HIDDEN }} environment secrets"
+          echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
+
+  second-triggered-stanza:
+    name: seconds
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: blurghk
+        id: blurksplat
+        run: |
+          echo "👁️ is this secret now accessible ? -> ${{ secrets._SOMETHING_HIDDEN }} <- would be here if it is."
+          echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
 
