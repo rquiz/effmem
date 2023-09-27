@@ -7,6 +7,17 @@ on:
         type: environment
         required: true
 
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - main
+      - "**"
+    paths:
+      - "**"
+
+env:
+  DEFAULT_ENV: ${{ inputs.environment || 'test' }}
+
 jobs:
   first-trigger:
     name: first trigger
@@ -27,5 +38,16 @@ jobs:
         id: blurksplat
         run: |
           echo "👁️ is this secret now accessible ? -> ${{ secrets._SOMETHING_HIDDEN }} <- would be here if it is."
+          echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
+
+  thirds-stanza:
+    name: thirdsess
+    runs-on: ubuntu-latest
+    environment:  ${{ inputs.environment || 'test' }}
+    steps:
+      - name: default environment?
+        id: defenv
+        run: |
+          echo "🦟 default (test) environment should be set here on push (not on manual trigger) ${{ env.DEFAULT_ENV }} ? -> ${{ secrets._SOMETHING_HIDDEN }} <- would be here if it is."
           echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
 
