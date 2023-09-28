@@ -75,8 +75,8 @@ jobs:
         working-directory: tf
         run: |
           terraform plan \
-          -var="${{ secrets._TF_VAR_MYSQL_USERNAME }}"
-          -no-color -out=tf.plan
+          -var "${{ secrets._TF_VAR_MYSQL_USERNAME }}"
+          -no-color -out tf.plan
         continue-on-error: false
 
       - run: echo ${{ steps.plan.outputs.stdout }}

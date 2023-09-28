@@ -58,7 +58,7 @@ resource "kubernetes_deployment" "test" {
 # K8s services manage networking and routing to deployments
 resource "kubernetes_service" "test" {
   metadata {
-    name      = "nginx"
+    name      = "mysql_username"
     namespace = kubernetes_namespace.test.metadata.0.name
   }
   spec {
