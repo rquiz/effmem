@@ -67,13 +67,21 @@ jobs:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
 
+      - run: terraform init
+        working-directory: tf
+
       - name: Terraform plan
         id: plan
+        working-directory: tf
         run: |
           terraform plan \
           -var="${{ secrets._TF_VAR_MYSQL_USERNAME }}"
-          -no-color -out=tf.plan tf/
+          -no-color -out=tf.plan
         continue-on-error: false
+
+      - run: echo ${{ steps.plan.outputs.stdout }}
+      - run: echo ${{ steps.plan.outputs.stderr }}
+      - run: echo ${{ steps.plan.outputs.exitcode }}
 
   # call-terraform-fmt:
   #   uses: ./.github/workflows/tf-fmt.yml
