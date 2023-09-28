@@ -56,3 +56,9 @@ jobs:
     uses: ./.github/workflows/tf-fmt.yml
     with:
       tf-root-dir: "tf/"
+
+  call-terraform-plan:
+    uses: ./.github/workflows/tf-plan.yml
+    with:
+      tf-root-dir: "tf/"
+    secrets: inherit
