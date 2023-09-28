@@ -10,14 +10,13 @@ terraform {
 }
 
 provider "kubernetes" {
-
   config_path = "~/.kube/config"
 }
 
 # K8s namespaces isolate projects or workloads
 resource "kubernetes_namespace" "test" {
   metadata {
-    name  = "nginx"
+    name = "nginx"
   }
 }
 
@@ -32,22 +31,22 @@ resource "kubernetes_deployment" "test" {
     replicas = 2
     selector {
       match_labels = {
-          app = "MyTestApp"
+        app = "MyTestApp"
       }
     }
     template {
       metadata {
         labels = {
-            app = "MyTestApp"
+          app = "MyTestApp"
         }
       }
       # container specifications
       spec {
         container {
-          image     = "nginx"
-          name    = "nginx-container"
+          image = "nginx"
+          name  = "nginx-container"
           port {
-              container_port =    80
+            container_port = 80
           }
         }
       }
@@ -69,11 +68,11 @@ resource "kubernetes_service" "test" {
     port {
       node_port   = 30222
       port        = 80
-      target_port  = 80
+      target_port = 80
     }
   }
 } # END resource "kubernetes_service" "test"
 
 variable "mysql_username" {
-  type = string
+  type    = string
 }

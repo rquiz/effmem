@@ -20,7 +20,6 @@ env:
   DEFAULT_ENV: ${{ inputs.environment || 'test' }}
 
 jobs:
-
   # has no access to environment secrets
   first-trigger:
     name: first trigger
@@ -58,24 +57,66 @@ jobs:
           echo "🦟 default (test) environment should be set here on push (not on manual trigger) ${{ env.DEFAULT_ENV }} ? -> ${{ secrets._SOMETHING_HIDDEN }} <- would be here if it is."
           echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
 
+
+  # JOB to run change detection
+  changes:
+    runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+    outputs:
+      # Expose matched filters as job 'packages' output variable
+      packages: ${{ steps.filter.outputs.changes }}
+      tf: ${{ steps.filter.outputs.tf }}
+    steps:
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          gcp: 
+            - datastream: 'tf/**'
+          projects: 'tf/.kube/**'
+          tf:
+            - 'tf/**'
+
+  # JOB to terraform plan each of modified packages
   plan:
     name: plan
-    runs-on: ubuntu-22.04
+    needs: changes
+    strategy:
+      matrix:
+        # Parse JSON array containing names of all filters matching any of changed files
+        # e.g. ['package1', 'package2'] if both package folders contains changes
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    runs-on: ubuntu-latest
     timeout-minutes: 3
     environment:  ${{ inputs.environment || 'test' }}
     steps:
+
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
 
-      - run: terraform init
-        working-directory: tf
+      - name: Terraform init
+        working-directory: ${{ matrix.package }}
+        run: terraform init
+
+      - name: TF VARS
+        id: _TF_VARS
+        run: |
+          echo ${{ secrets[format('_TF_VAR_{0}_MYSQL_USERNAME', matrix.package)] }}
+
+      # run only if 'tf' files were changed
+      - name: Terraform fmt
+        if: needs.changes.outputs.tf == 'true'
+        run: terraform fmt **/**.tf
 
       - name: Terraform plan
         id: plan
         working-directory: tf
         run: |
           terraform plan \
-          -var "${{ secrets._TF_VAR_MYSQL_USERNAME }}"
+          -var "${{ secrets[format('_TF_VAR_{0}_MYSQL_USERNAME', matrix.package)] }}"
           -no-color -out tf.plan
         continue-on-error: false
 
