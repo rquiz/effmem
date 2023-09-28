@@ -101,16 +101,21 @@ jobs:
         working-directory: ${{ matrix.package }}
         run: terraform init
 
-      - name: TF VARS
-        id: _TF_VARS
+      - name: Check for Environment Secrets
+        env: 
+            mysql_user: ${{ secrets[format('_TF_VAR_{0}_MYSQL_USERNAME', matrix.package)] }}
+            mysql_password: ${{ secrets[format('_TF_VAR_{0}_MYSQL_PASSWORD', matrix.package)] }}
         run: |
-          echo ${{ secrets[format('_TF_VAR_{0}_MYSQL_USERNAME', matrix.package)] }}
+          echo "we got environment secrets to use"
+          echo "MySQL User: ${{ secrets[format('_TF_VAR_{0}_MYSQL_USERNAME', matrix.package)] }}"
+          echo "MySQL Password: ${{ secrets[format('_TF_VAR_{0}_MYSQL_PASSWORD', matrix.package)] }}"
 
       # run only if 'tf' files were changed
       - name: Terraform fmt
         if: needs.changes.outputs.tf == 'true'
         run: terraform fmt **/**.tf
 
+      # if there is no var/secret with the format() name, this matrix.plan will error out
       - name: Terraform plan
         id: plan
         working-directory: tf
