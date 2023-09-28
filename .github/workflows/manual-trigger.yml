@@ -71,7 +71,7 @@ jobs:
         id: plan
         run: |
           terraform plan \
-          -var="${{ secrets._SOMETHING_HIDDEN }}"
+          -var="${{ secrets._TF_VAR_MYSQL_USERNAME }}"
           -no-color -out=tf.plan tf/
         continue-on-error: false
 
