@@ -10,7 +10,7 @@ terraform {
 }
 
 provider "kubernetes" {
-  config_path = "~/.kube/config"
+  config_path = "./.kube/config"
 }
 
 # K8s namespaces isolate projects or workloads
