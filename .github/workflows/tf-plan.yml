@@ -7,6 +7,9 @@ on:
       tf-root-dir:
         required: true
         type: string
+      tf-var:
+        required: true
+        type: string
 
 jobs:
   plan:
@@ -21,6 +24,6 @@ jobs:
         id: plan
         run: |
           terraform plan \
-          -var ${{ secrets._SOMETHING_HIDDEN }}
+          -var ${{ inputs.tf-var }}
           -no-color -out=tf.plan ${{ inputs.tf-root-dir }}
         continue-on-error: false

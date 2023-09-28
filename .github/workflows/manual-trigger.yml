@@ -20,6 +20,8 @@ env:
   DEFAULT_ENV: ${{ inputs.environment || 'test' }}
 
 jobs:
+
+  # has no access to environment secrets
   first-trigger:
     name: first trigger
     runs-on: ubuntu-latest
@@ -30,6 +32,7 @@ jobs:
           echo "Found ${{ secrets._SOMETHING_HIDDEN }} environment secrets"
           echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
 
+  # fails to load environment secrets unless workflow trigger is manaul
   second-triggered-stanza:
     name: seconds
     runs-on: ubuntu-latest
@@ -41,10 +44,13 @@ jobs:
           echo "👁️ is this secret now accessible ? -> ${{ secrets._SOMETHING_HIDDEN }} <- would be here if it is."
           echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
 
+  # manual trigger will load environment, other triggers default to 'test' environment
   thirds-stanza:
     name: thirdsess
     runs-on: ubuntu-latest
     environment:  ${{ inputs.environment || 'test' }}
+    outputs:
+      _TF_VARS: ${{ secrets._SOMETHING_HIDDEN }}
     steps:
       - name: default environment?
         id: defenv
@@ -59,6 +65,8 @@ jobs:
 
   call-terraform-plan:
     uses: ./.github/workflows/tf-plan.yml
+    needs: thirds-stanza
     with:
       tf-root-dir: "tf/"
-    secrets: inherit
+    secrets:
+      tf-var: ${{ needs.thirds-stanza.outputs._TF_VARS }}
