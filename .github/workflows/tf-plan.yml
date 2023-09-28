@@ -7,9 +7,9 @@ on:
       tf-root-dir:
         required: true
         type: string
+    secrets:
       tf-var:
         required: true
-        type: string
 
 jobs:
   plan:
