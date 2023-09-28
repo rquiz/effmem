@@ -71,8 +71,8 @@ jobs:
         id: plan
         run: |
           terraform plan \
-          -var ${{ secrets._SOMETHING_HIDDEN }}
-          -no-color -out=tf.plan ${{ inputs.tf-root-dir }}
+          -var="${{ secrets._SOMETHING_HIDDEN }}"
+          -no-color -out=tf.plan tf/
         continue-on-error: false
 
   # call-terraform-fmt:

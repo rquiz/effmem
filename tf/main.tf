@@ -73,3 +73,7 @@ resource "kubernetes_service" "test" {
     }
   }
 } # END resource "kubernetes_service" "test"
+
+variable "mysql_username" {
+  type = string
+}
