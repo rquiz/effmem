@@ -58,15 +58,32 @@ jobs:
           echo "🦟 default (test) environment should be set here on push (not on manual trigger) ${{ env.DEFAULT_ENV }} ? -> ${{ secrets._SOMETHING_HIDDEN }} <- would be here if it is."
           echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
 
-  call-terraform-fmt:
-    uses: ./.github/workflows/tf-fmt.yml
-    with:
-      tf-root-dir: "tf/"
+  plan:
+    name: plan
+    runs-on: ubuntu-22.04
+    timeout-minutes: 3
+    environment:  ${{ inputs.environment || 'test' }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
 
-  call-terraform-plan:
-    uses: ./.github/workflows/tf-plan.yml
-    needs: thirds-stanza
-    with:
-      tf-root-dir: "tf/"
-    secrets:
-      tf-var: ${{ needs.thirds-stanza.outputs._TF_VARS }}
+      - name: Terraform plan
+        id: plan
+        run: |
+          terraform plan \
+          -var ${{ secrets._SOMETHING_HIDDEN }}
+          -no-color -out=tf.plan ${{ inputs.tf-root-dir }}
+        continue-on-error: false
+
+  # call-terraform-fmt:
+  #   uses: ./.github/workflows/tf-fmt.yml
+  #   with:
+  #     tf-root-dir: "tf/"
+
+  # call-terraform-plan:
+  #   uses: ./.github/workflows/tf-plan.yml
+  #   needs: thirds-stanza
+  #   with:
+  #     tf-root-dir: "tf/"
+  #   secrets:
+  #     tf-var: ${{ needs.thirds-stanza.outputs._TF_VARS }}
