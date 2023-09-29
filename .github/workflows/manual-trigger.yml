@@ -22,44 +22,6 @@ env:
   TF_IN_AUTOMATION: true
 
 jobs:
-  # has no access to environment secrets
-  first-trigger:
-    name: first trigger
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fetch environment
-        id: fetch-env
-        run: |
-          echo "Found ${{ secrets._SOMETHING_HIDDEN }} environment secrets"
-          echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
-
-  # fails to load environment secrets unless workflow trigger is manaul
-  second-triggered-stanza:
-    name: seconds
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    steps:
-      - name: blurghk
-        id: blurksplat
-        run: |
-          echo "👁️ is this secret now accessible ? -> ${{ secrets._SOMETHING_HIDDEN }} <- would be here if it is."
-          echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
-
-  # manual trigger will load environment, other triggers default to 'test' environment
-  thirds-stanza:
-    name: thirdsess
-    runs-on: ubuntu-latest
-    environment:  ${{ inputs.environment || 'test' }}
-    outputs:
-      _TF_VARS: ${{ secrets._SOMETHING_HIDDEN }}
-    steps:
-      - name: default environment?
-        id: defenv
-        run: |
-          echo "🦟 default (test) environment should be set here on push (not on manual trigger) ${{ env.DEFAULT_ENV }} ? -> ${{ secrets._SOMETHING_HIDDEN }} <- would be here if it is."
-          echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
-
-
   # JOB to run change detection
   changes:
     runs-on: ubuntu-latest
@@ -85,7 +47,7 @@ jobs:
   # JOB to terraform plan each of modified packages
   plan:
     env: 
-      _TF_VARS: ${{ secrets[format('_TF_VARS_{0}', matrix.package)] || '' }}
+      TF_CLI_ARGS_plan: ${{ secrets[format('_TF_VARS_{0}', matrix.package)] || '' }}
     environment:  ${{ inputs.environment || 'test' }}
     name: plan
     needs: changes
@@ -105,17 +67,6 @@ jobs:
         working-directory: ${{ matrix.package }}
         run: terraform init
 
-      # this works to setup env.mysql_user if this matrix.package has a secret for it!
-      - name: Check for Environment Secrets
-        env: 
-            _TF_VARS: ${{ secrets[format('_TF_VARS_{0}', matrix.package)] || '' }}
-            mysql_password: ${{ secrets[format('_TF_VAR_{0}_MYSQL_PASSWORD', matrix.package)] }}
-            other: values
-        run: |
-          echo "we got environment secrets to use"
-          echo "_TF_VARS: ${{ secrets[format('_TF_VARS_{0}', matrix.package)] || '' }}"
-          echo "MySQL Password: ${{ secrets[format('_TF_VAR_{0}_MYSQL_PASSWORD', matrix.package)] }}"
-
       # run only if 'tf' files were changed
       - name: Terraform fmt
         if: needs.changes.outputs.tf == 'true'
@@ -124,28 +75,18 @@ jobs:
       # if there is no var/secret with the format() name, this matrix.plan will error out
       # -var "${{ secrets[format('_TF_VAR_{0}_MYSQL_USERNAME', matrix.package)] }}" 
       - name: Terraform plan
+        env:
+          TF_VAR_mysql_username: ${{ secrets._TF_VAR_MYSQL_USERNAME }}
+          TF_VAR_mysql_password: ${{ secrets._TF_VAR_MYSQL_PASSWORD }}
+          TF_VAR_other: ${{ secrets[format('_TF_VARS_{0}', matrix.package)] }}
         id: plan
         working-directory: tf
         run: |
           terraform plan
           -input=false
-          ${{ env._TF_VARS }}
           -no-color -out=tf.plan
         continue-on-error: false
 
       - run: echo ${{ steps.plan.outputs.stdout }}
       - run: echo ${{ steps.plan.outputs.stderr }}
       - run: echo ${{ steps.plan.outputs.exitcode }}
-
-  # call-terraform-fmt:
-  #   uses: ./.github/workflows/tf-fmt.yml
-  #   with:
-  #     tf-root-dir: "tf/"
-
-  # call-terraform-plan:
-  #   uses: ./.github/workflows/tf-plan.yml
-  #   needs: thirds-stanza
-  #   with:
-  #     tf-root-dir: "tf/"
-  #   secrets:
-  #     tf-var: ${{ needs.thirds-stanza.outputs._TF_VARS }}
