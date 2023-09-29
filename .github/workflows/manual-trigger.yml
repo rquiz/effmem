@@ -101,6 +101,7 @@ jobs:
         working-directory: ${{ matrix.package }}
         run: terraform init
 
+      # this works to setup env.mysql_user if this matrix.package has a secret for it!
       - name: Check for Environment Secrets
         env: 
             mysql_user: ${{ secrets[format('_TF_VAR_{0}_MYSQL_USERNAME', matrix.package)] }}
@@ -116,12 +117,13 @@ jobs:
         run: terraform fmt **/**.tf
 
       # if there is no var/secret with the format() name, this matrix.plan will error out
+      # -var "${{ secrets[format('_TF_VAR_{0}_MYSQL_USERNAME', matrix.package)] }}" 
       - name: Terraform plan
         id: plan
         working-directory: tf
         run: |
-          terraform plan \
-          -var "${{ secrets[format('_TF_VAR_{0}_MYSQL_USERNAME', matrix.package)] }}"
+          terraform plan
+          "${{ secrets[format('_TF_VARS_{0}', matrix.package)] }}"
           -no-color -out tf.plan
         continue-on-error: false
 
