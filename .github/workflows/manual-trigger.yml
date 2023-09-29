@@ -84,16 +84,18 @@ jobs:
 
   # JOB to terraform plan each of modified packages
   plan:
+    env: 
+      _TF_VARS: ${{ secrets[format('_TF_VARS_{0}', matrix.package)] || '' }}
+    environment:  ${{ inputs.environment || 'test' }}
     name: plan
     needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
     strategy:
       matrix:
         # Parse JSON array containing names of all filters matching any of changed files
         # e.g. ['package1', 'package2'] if both package folders contains changes
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 1
-    environment:  ${{ inputs.environment || 'test' }}
     steps:
 
       - uses: actions/checkout@v3
@@ -108,6 +110,7 @@ jobs:
         env: 
             _TF_VARS: ${{ secrets[format('_TF_VARS_{0}', matrix.package)] || '' }}
             mysql_password: ${{ secrets[format('_TF_VAR_{0}_MYSQL_PASSWORD', matrix.package)] }}
+            other: values
         run: |
           echo "we got environment secrets to use"
           echo "_TF_VARS: ${{ secrets[format('_TF_VARS_{0}', matrix.package)] || '' }}"
@@ -126,7 +129,7 @@ jobs:
         run: |
           terraform plan
           -input=false
-          "${{ env._TF_VARS }}"
+          ${{ env._TF_VARS }}
           -no-color -out=tf.plan
         continue-on-error: false
 
