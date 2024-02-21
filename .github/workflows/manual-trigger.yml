@@ -21,6 +21,8 @@ jobs:
           echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
           echo "composed variable Dos : STING_${{ inputs.environment }}"
           echo "TRES=STING_${{ inputs.environment }}" >> $GITHUB_ENV
+      - name: otro
+        run: |
           echo "tres por favor? ${{ env.TRES }}"
 
   second-triggered-stanza:
