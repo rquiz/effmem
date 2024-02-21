@@ -9,6 +9,9 @@ on:
 
 jobs:
   first-trigger:
+    env:
+      TRES: ''
+      QUATRO: ''
     name: first trigger
     runs-on: ubuntu-latest
     steps:
@@ -20,6 +23,8 @@ jobs:
           echo "composed variable Dos : STING_${{ inputs.environment }}"
           echo "TRES=STING_${{ inputs.environment }}" >> $GITHUB_ENV
           echo "tres por favor? ${{ env.TRES }}"
+          echo "QUATRO=SING_${ inputs.environment@U }" >> $GITHUB_ENV
+          echo "quatro por favor? ${{ env.QUATRO }}"
 
   second-triggered-stanza:
     name: seconds
