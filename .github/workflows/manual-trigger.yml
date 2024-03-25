@@ -19,13 +19,6 @@ env:
     - pie: "./etc/docker/pie"
     - mlflow_server: "./etc/docker/mlflow_server"
     - positioning_new: "./etc/docker/positioning_new"
-  SERVICE_CONFIG_DIRS: |
-    '{
-    "api": "./etc/docker/api",
-    "pie": "./etc/docker/pie",
-    "mlflow_server": "./etc/docker/mlflow_server",
-    "positioning_new": "./etc/docker/positioning_new"
-    }'
 
 jobs:
   config:
@@ -35,11 +28,18 @@ jobs:
     steps:
       - id: convert
         run: |
-          json_rep=${{ toJson( env.SERVICE_CONFIG_DIRS ) }}
-          echo $json_rep
-          echo "jq -r '.${{inputs.service}}' <<< "$json_rep""
-          echo "again ... ${{ fromJSON(env.SERVICE_CONFIG_DIRS)[inputs.service] }}"
-          echo "CONFIG_DIR=${{ env.SERVICE_CONFIG_DIRS[ inputs.service ] }}" >> $GITHUB_OUTPUT
+          jsonData=$(cat <<EOF
+          {
+          "api": "./etc/docker/api",
+          "pie": "./etc/docker/pie",
+          "mlflow_server": "./etc/docker/mlflow_server",
+          "positioning_new": "./etc/docker/positioning_new"
+          }
+          EOF
+          )
+          echo $jsonData
+          service_key="$(jq -r '.${{inputs.service}}' <<< "$jsonData")"
+          echo "SVC_KEY=$service_key"  >> $GITHUB_OUTPUT
 
   first-trigger:
     env:
