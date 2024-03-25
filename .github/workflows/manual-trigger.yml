@@ -33,7 +33,7 @@ jobs:
             "api": "./etc/docker/api",
             "pie": "./etc/docker/pie",
             "mlflow_server": "./etc/docker/mlflow_server",
-            "positioning_new": "./etc/docker/positioning_new",
+            "positioning_new": "./etc/docker/positioning_new"
           }
           EOF
           )
