@@ -6,17 +6,58 @@ on:
       environment:
         type: environment
         required: true
+      service:
+        type: choice
+        options:
+          - api
+          - pie
+          - other
+        required: true
+env:
+  SERVICE_CONFIG_DIRS_YAML: |
+    - api: "./etc/docker/api"
+    - pie: "./etc/docker/pie"
+    - mlflow_server: "./etc/docker/mlflow_server"
+    - positioning_new: "./etc/docker/positioning_new"
 
 jobs:
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      CONFIG_DIR: ${{ steps.convert.outputs.CONFIG_DIR }}
+    steps:
+      - id: convert
+        run: |
+          jsonData=$(cat <<EOF
+          {
+            "api": "./etc/docker/api",
+            "pie": "./etc/docker/pie",
+            "mlflow_server": "./etc/docker/mlflow_server",
+            "positioning_new": "./etc/docker/positioning_new"
+          }
+          EOF
+          )
+          service_key="$(jq -r '.${{inputs.service}}' <<< "$jsonData")"
+          echo "CONFIG_DIR=$service_key" >> $GITHUB_OUTPUT
+      - id: dump
+        run: |
+          echo "DUMP: ${{ steps.convert.outputs.CONFIG_DIR }}"
+
   first-trigger:
+    env:
+      TRES: ''
     name: first trigger
     runs-on: ubuntu-latest
     steps:
       - name: Fetch environment
         id: fetch-env
         run: |
-          echo "Found ${{ secrets._SOMETHING_HIDDEN }} environment secrets"
           echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
+          echo "composed variable Dos : STING_${{ inputs.environment }}"
+          echo "TRES=STING_${{ inputs.environment }}" >> $GITHUB_ENV
+      - name: otro
+        run: |
+          echo "tres por favor? ${{ env.TRES }}"
 
   second-triggered-stanza:
     name: seconds
