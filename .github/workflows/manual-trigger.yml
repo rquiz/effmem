@@ -14,11 +14,18 @@ on:
           - other
         required: true
 env:
-  SERVICE_CONFIG_DIRS: |
+  SERVICE_CONFIG_DIRS_YAML: |
     - api: "./etc/docker/api"
     - pie: "./etc/docker/pie"
     - mlflow_server: "./etc/docker/mlflow_server"
     - positioning_new: "./etc/docker/positioning_new"
+  SERVICE_CONFIG_DIRS: |
+    '{
+    "api": "./etc/docker/api",
+    "pie": "./etc/docker/pie",
+    "mlflow_server": "./etc/docker/mlflow_server",
+    "positioning_new": "./etc/docker/positioning_new"
+    }'
 
 jobs:
   config:
@@ -29,7 +36,7 @@ jobs:
       - id: convert
         run: |
           json_rep=${{ toJson( env.SERVICE_CONFIG_DIRS ) }}
-          echo "ISJSON? $json_rep"
+          echo $json_rep
           echo "jq -r '.${{inputs.service}}' <<< "$json_rep""
           echo "again ... ${{ fromJSON(env.SERVICE_CONFIG_DIRS)[inputs.service] }}"
           echo "CONFIG_DIR=${{ env.SERVICE_CONFIG_DIRS[ inputs.service ] }}" >> $GITHUB_OUTPUT
