@@ -39,7 +39,10 @@ jobs:
           )
           echo $jsonData
           service_key="$(jq -r '.${{inputs.service}}' <<< "$jsonData")"
-          echo "SVC_KEY=$service_key"  >> $GITHUB_OUTPUT
+          echo "CONFIG_DIR=$service_key" >> $GITHUB_OUTPUT
+      - id: dump
+        run: |
+          echo "DUMP: ${{ steps.convert.outputs.CONFIG_DIR }}"
 
   first-trigger:
     env:
@@ -50,7 +53,6 @@ jobs:
       - name: Fetch environment
         id: fetch-env
         run: |
-          echo "Found ${{ secrets._SOMETHING_HIDDEN }} environment secrets"
           echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
           echo "composed variable Dos : STING_${{ inputs.environment }}"
           echo "TRES=STING_${{ inputs.environment }}" >> $GITHUB_ENV
