@@ -6,8 +6,30 @@ on:
       environment:
         type: environment
         required: true
+      service:
+        type: choice
+        options:
+          - api
+          - pie
+          - other
+        required: true
+env:
+  SERVICE_CONFIG_DIRS: |
+    - api: "./etc/docker/api"
+    - pie: "./etc/docker/pie"
+    - mlflow_server: "./etc/docker/mlflow_server"
+    - positioning_new: "./etc/docker/positioning_new"
 
 jobs:
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      CONFIG_DIR: ${{ steps.convert.outputs.CONFIG_DIR }}
+    steps:
+      - id: convert
+        run: |
+          echo "CONFIG_DIR=${{ env.SERVICE_CONFIG_DIRS[ inputs.service ] }}" >> $GITHUB_OUTPUT
+
   first-trigger:
     env:
       TRES: ''
