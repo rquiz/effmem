@@ -30,14 +30,13 @@ jobs:
         run: |
           jsonData=$(cat <<EOF
           {
-          "api": "./etc/docker/api",
-          "pie": "./etc/docker/pie",
-          "mlflow_server": "./etc/docker/mlflow_server",
-          "positioning_new": "./etc/docker/positioning_new"
+            "api": "./etc/docker/api",
+            "pie": "./etc/docker/pie",
+            "mlflow_server": "./etc/docker/mlflow_server",
+            "positioning_new": "./etc/docker/positioning_new",
           }
           EOF
           )
-          echo $jsonData
           service_key="$(jq -r '.${{inputs.service}}' <<< "$jsonData")"
           echo "CONFIG_DIR=$service_key" >> $GITHUB_OUTPUT
       - id: dump
