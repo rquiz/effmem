@@ -28,6 +28,10 @@ jobs:
     steps:
       - id: convert
         run: |
+          json_rep=${{ toJson( env.SERVICE_CONFIG_DIRS ) }}
+          echo "ISJSON? $json_rep"
+          echo "jq -r '.${{inputs.service}}' <<< "$json_rep""
+          echo "again ... ${{ fromJSON(env.SERVICE_CONFIG_DIRS)[inputs.service] }}"
           echo "CONFIG_DIR=${{ env.SERVICE_CONFIG_DIRS[ inputs.service ] }}" >> $GITHUB_OUTPUT
 
   first-trigger:
