@@ -30,7 +30,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Print merge-into branch name
         run: echo ${{ github.ref_name }}
-      -
+
       # Runs a single command using the runners shell
       - name: Run a one-line script
         run: echo Hello, world!
