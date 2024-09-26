@@ -6,26 +6,85 @@ on:
       environment:
         type: environment
         required: true
+        default: test
+
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - main
+      - "**"
+    paths:
+      - "**"
+
+env:
+  DEFAULT_ENV: ${{ inputs.environment || 'test' }}
+  TF_VERSION: 1.4.6
+  TF_IN_AUTOMATION: true
 
 jobs:
-  first-trigger:
-    name: first trigger
+  # JOB to run change detection
+  changes:
     runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+    outputs:
+      # Expose matched filters as job 'packages' output variable
+      packages: ${{ steps.filter.outputs.changes }}
+      tf: ${{ steps.filter.outputs.tf }}
     steps:
-      - name: Fetch environment
-        id: fetch-env
-        run: |
-          echo "Found ${{ secrets._SOMETHING_HIDDEN }} environment secrets"
-          echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          gcp: 
+            - 'tf/**'
+          projects: 'tf/.kube/**'
+          tf:
+            - 'tf/**'
 
-  second-triggered-stanza:
-    name: seconds
+  # JOB to terraform plan each of modified packages
+  plan:
+    environment:  ${{ inputs.environment || 'test' }}
+    name: plan
+    needs: changes
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    timeout-minutes: 1
+    strategy:
+      matrix:
+        # Parse JSON array containing names of all filters matching any of changed files
+        # e.g. ['package1', 'package2'] if both package folders contains changes
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
     steps:
-      - name: blurghk
-        id: blurksplat
-        run: |
-          echo "👁️ is this secret now accessible ? -> ${{ secrets._SOMETHING_HIDDEN }} <- would be here if it is."
-          echo "environment is ${{ github.event.inputs.environment }} / ${{ inputs.environment }}"
 
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform init
+        working-directory: ${{ matrix.package }}
+        run: terraform init
+
+      # run only if 'tf' files were changed
+      - name: Terraform fmt
+        if: needs.changes.outputs.tf == 'true'
+        run: terraform fmt **/**.tf
+
+      # if there is no var/secret with the format() name, this matrix.plan will error out
+      # -var "${{ secrets[format('_TF_VAR_{0}_MYSQL_USERNAME', matrix.package)] }}" 
+      - name: Terraform plan
+        env:
+          TF_VAR_mysql_username: ${{ secrets._TF_VAR_MYSQL_USERNAME }}
+          TF_VAR_mysql_password: ${{ secrets._TF_VAR_MYSQL_PASSWORD }}
+          TF_VAR_other: ${{ secrets[format('_TF_VARS_{0}', matrix.package)] }}
+        id: plan
+        working-directory: tf
+        run: |
+          terraform plan
+          -input=false
+          -no-color -out=tf.plan
+        continue-on-error: false
+
+      - run: echo ${{ steps.plan.outputs.stdout }}
+      - run: echo ${{ steps.plan.outputs.stderr }}
+      - run: echo ${{ steps.plan.outputs.exitcode }}
