@@ -35,9 +35,6 @@ jobs:
       - name: Run a one-line script
         run: echo Hello, world!
       -
-        name: Checkout
-        uses: actions/checkout@v3
-      -
         name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
       -
