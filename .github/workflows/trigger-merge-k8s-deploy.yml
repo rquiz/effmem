@@ -10,7 +10,7 @@ on:
 
 jobs:
 
-  configure:
+  all-slices:
     runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -24,25 +24,16 @@ jobs:
         # dump the file into a JSON object keyed 'matrix'
         run: echo "matrix=$(jq -c . < .github/config/slices.json)" >> $GITHUB_OUTPUT
 
-  print:
-    runs-on: ubuntu-24.04
-    needs: configure
-    strategy:
-      matrix: ${{ fromJson(needs.configure.outputs.matrix) }}
-    steps:
-      # properties of the JSON object are now available
-     - run: echo ${{ matrix.name }}
-     - run: echo ${{ matrix.dockerfile }}
-
   # DEPLOY TO GKE (Kubernetes)
   deploy-to-gke:
     name: deploy (GKE)
-    needs: shipit
+    needs: all-slices
     strategy:
       fail-fast: true
-      matrix: ${{ fromJson(needs.configure.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.all-slices.outputs.matrix) }}
     uses: ./.github/workflows/reusable-k8s-deploy.yaml
     with:
       environment: phils-apps-prd
       service: ${{ matrix.name }}
+      dockerfile: ${{ matrix.dockerfile }}
     secrets: inherit
