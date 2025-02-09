@@ -131,3 +131,6 @@ dmypy.json
 
 # Docker cache
 .cache/
+
+# VSCode
+.vscode/
