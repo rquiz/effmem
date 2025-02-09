@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix: ${{ fromJson(needs.configure.outputs.matrix) }}
-    uses: ./.github/workflows/reusabel-k8s-deploy.yaml
+    uses: ./.github/workflows/reusable-k8s-deploy.yaml
     with:
       environment: phils-apps-prd
       service: ${{ matrix.name }}
