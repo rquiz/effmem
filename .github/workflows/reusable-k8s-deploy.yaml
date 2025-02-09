@@ -1,0 +1,118 @@
+# PIE deploy-kubernetes
+# Reusable Workflow
+#
+# This workflow triggers Kubectl deployments to GKE
+# Note:
+# deployment triggers should pass only a single K8s Service to be deployed
+# multiple services may be deployed by using a GHA matrix to call this workflow
+
+name: reusable-k8s-deploy
+on:
+
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      service:
+        default: pie
+        description: Target Service Deployment
+        required: true
+        type: string
+
+  # Allow manually triggered k8s deploy
+  workflow_dispatch:
+    inputs:
+      environment:
+        default: phils-apps-stg
+        description: Target GCP Project & Stage
+        required: true
+        type: environment
+      service:
+        default: api
+        description: Target Service Deployment
+        options:
+          - api
+          - api-inference
+          - api-operations
+          - gains
+          - hitting
+          - hitting-advance
+          - intlblast
+          - performance
+          - pitching
+          - pitchingsandlot
+          - poe
+          - postgame
+          - postgamesandlot
+          - promodel
+          - rocky
+          - ws
+        required: true
+        type: choice
+
+env:
+  #TODO: github env vars???
+  phils-apps-stg: microservices-blu
+  REGION: us-east1
+  NAMESPACE: apps
+  DEPLOYED_IMAGE: null
+  LATEST_SHA: null
+
+jobs:
+  deploy:
+    environment: inputs.environment
+    name: ⬡ Deploy to GKE (Kubernetes)
+    outputs:
+      cluster_id: ${{ env[inputs.environment] }}
+      image_ref: ${{ env.DEPLOYED_IMAGE }}@${{ env.LATEST_SHA }}
+    runs-on: ubuntu-24.04
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup GCloud auth
+        uses: google-github-actions/auth@v2
+        with:
+          # scoped to ${{ inputs.environment }} Github Environment
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          service_account: ${{ secrets.GCP_WORKLOAD_SA_EMAIL }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_ID_PROVIDER }}
+
+      # The KUBECONFIG env var is automatically exported and picked up by kubectl.
+      - name: Fetch GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env[inputs.environment] }}
+          location: ${{ env.REGION }}
+          project_id: ${{ vars.GCLOUD_PROJECT }}
+
+      # Could use `deploy/${{ inputs.service }}` however, Aaron K8s has inconsistent deployment names
+      - name: Fetch Image of Current Deployment
+        run: echo "DEPLOYED_IMAGE=$(kubectl get deployment -l app=${{ inputs.service }} -n ${{ env.NAMESPACE }} -o jsonpath='{..image}')" >> $GITHUB_ENV
+
+      - name: Fetch SHA of Current Deployment
+        run: echo "LATEST_SHA=$(gcloud container images describe ${{ env.DEPLOYED_IMAGE }} --format='value(image_summary.digest)')" >> $GITHUB_ENV
+
+      # Rollout forces a new ReplicaSet; this will pull a new Image for the Service IF the IMAGE_PULL_POLICY==ALWAYS
+      - name: Start Rollout
+        run: kubectl rollout restart deploy -l app=${{ inputs.service }} -n ${{ env.NAMESPACE }}
+
+      - name: Annotate Deploy SHA
+        run: kubectl annotate deployment -l app=${{ inputs.service }} -n ${{ env.NAMESPACE }} --overwrite kubernetes.io/change-cause='${{ env.DEPLOYED_IMAGE }}@${{ env.LATEST_SHA }}'
+
+      - name: Fetch Rollout History
+        run: kubectl rollout history deploy -l app=${{ inputs.service }} -n ${{ env.NAMESPACE }}
+
+  deploy-msg:
+    if: always()
+    needs: deploy
+    secrets:
+      inherit
+    uses: ./.github/workflows/slack.yaml
+    with:
+      destination: "GKE: ${{ needs.deploy.outputs.cluster_id }} Image: ${{ needs.deploy.outputs.image_ref }}"
+      environment: ${{ inputs.environment }}
+      service: ${{ inputs.service }}
+      status: ${{ needs.deploy.result }}

@@ -1,0 +1,28 @@
+{
+  "include": [
+    {
+      "name": "api",
+      "dockerfile": "api/etc"
+    },
+    {
+      "name": "api/inference",
+      "dockerfile": "api/inference/etc"
+    },
+    {
+      "name": "api/operations",
+      "dockerfile": "api/operations/etc"
+    },
+    {
+      "name": "bbref_draft_scraper",
+      "dockerfile": "uploader/bbref_draft_scraper/etc"
+    },
+    {
+      "name": "dash/brades",
+      "dockerfile": "dash/brades/etc"
+    },
+    {
+      "name": "pie",
+      "dockerfile": "etc/docker/pie"
+    }
+  ]
+}
