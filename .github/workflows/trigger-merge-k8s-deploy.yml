@@ -1,0 +1,48 @@
+name: trigger-merge-K8s-deploy
+on:
+  # allows manual GHA Action run
+  workflow_dispatch:
+
+  # automatic GHA run upon any merge into main
+  # push:
+  #   branches:
+  #     - main
+
+jobs:
+
+  configure:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/config/slices.json
+      - name: Set matrix data
+        id: set-matrix
+        # dump the file into a JSON object keyed 'matrix'
+        run: echo "matrix=$(jq -c . < .github/config/slices.json)" >> $GITHUB_OUTPUT
+
+  print:
+    runs-on: ubuntu-24.04
+    needs: configure
+    strategy:
+      matrix: ${{ fromJson(needs.configure.outputs.matrix) }}
+    steps:
+      # properties of the JSON object are now available
+     - run: echo ${{ matrix.name }}
+     - run: echo ${{ matrix.dockerfile }}
+
+  # DEPLOY TO GKE (Kubernetes)
+  deploy-to-gke:
+    name: deploy (GKE)
+    needs: shipit
+    strategy:
+      fail-fast: true
+      matrix: ${{ fromJson(needs.configure.outputs.matrix) }}
+    uses: ./.github/workflows/reusabel-k8s-deploy.yaml
+    with:
+      environment: phils-apps-prd
+      service: ${{ matrix.name }}
+    secrets: inherit
